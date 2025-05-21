@@ -5,6 +5,11 @@ on:
     branches:
       - main
 
+env:
+  SKIP_INCLUDED: false
+  IS_VALID: $(echo '${{ toJson(github.event.commits.*.message) }}' | jq -r 'join(" ")')
+          if [[ "$COMMIT_MESSAGES" == *"#skip"* ]];
+
 jobs:
   a_test_job:
     runs-on: ubuntu-22.04
