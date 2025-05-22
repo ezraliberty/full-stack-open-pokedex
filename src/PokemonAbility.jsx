@@ -9,4 +9,6 @@ const PokemonAbility = ({ abilityName }) => (
   </div>
 )
 
+PokemonAbility
+
 // export default PokemonAbility
