@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - main
-    pull_request:
-      branches: [main]
-      types: [opened, synchronize]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
 
 env:
   SKIP_INCLUDED: false
@@ -14,6 +14,8 @@ env:
 jobs:
   simple_deployment_pipeline:
     runs-on: ubuntu-22.04
+    outputs:
+      skip: ${{ steps.check-skip.outputs.skip }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -28,6 +30,7 @@ jobs:
       - name: Run tests
         run: npm test
       - name: Check for skip in commit messages
+        id: check-skip
         run: |
           COMMIT_MESSAGES=$(echo '${{ toJson(github.event.commits.*.message) }}' | jq -r 'join(" ")')
           if [[ "$COMMIT_MESSAGES" == *"#skip"* ]]; then
@@ -38,19 +41,19 @@ jobs:
             echo "skip=false" >> $GITHUB_OUTPUT
           fi
       - name: Deploy
-        if: ${{ github.event_name == 'push' && env.SKIP_INCLUDED == 'false'}}
+        if: ${{ github.event_name == 'push' && env.SKIP_INCLUDED == 'false' }}
         env:
           deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
-          curl "$deploy_url"   
+          curl "$deploy_url"
   tag_release:
-      needs: [simple_deployment_pipeline]
-      runs-on: ubuntu-22.04
-      steps:
-        - uses: actions/checkout@v4
-        - name: Bump version and push tag
-          if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SKIP_INCLUDED == 'false'
-          uses: anothrNick/github-tag-action@1.73.0
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            DEFAULT_BUMP: patch
+    needs: [simple_deployment_pipeline]
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.simple_deployment_pipeline.outputs.skip == 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.73.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch
