@@ -33,33 +33,17 @@ jobs:
         uses: rjstone/discord-webhook-notify@v1
         with:
             severity: info
-            # username: CustomUsername
             color: '#56d364'
-            # avatarUrl: https://github.githubassets.com/images/modules/logos_page/Octocat.png
             description: Build was successfully deployed to ${{ secrets.RENDER_URL }}. by ${{ github.actor }}
             text: A new version of the app is now live!
-            # details: 'Custom details: Somebody set up us the bomb.'
-            # footer: This is a footer.
-            # text: This is where text goes.
             webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
       - name: Test Custom
         uses: rjstone/discord-webhook-notify@v1
         with:
-            severity: info
-            color: #56d364
-            content: |
-              Build was successfully deployed to ${{ secrets.RENDER_URL }}. by ${{ github.actor }}
-            text: A new version of the app is now live!
-            webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
-      - name: Test Failure
-        uses: rjstone/discord-webhook-notify@v1
-        if: failure()
-        with:
             severity: error
-            color: #f44747;
-            details: Test Failed!
-            text: | 
-              Build Failed Commit URL: ${{ github.event.head_commit.url }}
+            color: '#f44747'
+            description: commit ${{ github.event.head_commit.url }} by ${{ github.actor }} broke the build :(
+            text: Build failed!
             webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
       - name: Check for skip in commit messages
         id: check-skip
