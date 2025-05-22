@@ -35,6 +35,15 @@ jobs:
         with:
             severity: info
             details: Test Succeeded!
+            text: Build was successful Admin
+            webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+      - name: Test Failure
+        uses: rjstone/discord-webhook-notify@v1
+        if: failure()
+        with:
+            severity: error
+            details: Test Failed!
+            text: Build Failed 
             webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
       - name: Check for skip in commit messages
         id: check-skip
