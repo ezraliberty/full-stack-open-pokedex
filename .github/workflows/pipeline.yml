@@ -35,8 +35,9 @@ jobs:
             severity: info
             # username: CustomUsername
             color: '#56d364'
-            avatarUrl: https://github.githubassets.com/images/modules/logos_page/Octocat.png
+            # avatarUrl: https://github.githubassets.com/images/modules/logos_page/Octocat.png
             description: Build was successfully deployed to ${{ secrets.RENDER_URL }}. by ${{ github.actor }}
+            text: A new version of the app is now live!
             # details: 'Custom details: Somebody set up us the bomb.'
             # footer: This is a footer.
             # text: This is where text goes.
