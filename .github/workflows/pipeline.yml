@@ -34,12 +34,12 @@ jobs:
         with:
             severity: info
             # username: CustomUsername
-            color: '#ff00aa'
+            color: '#56d364'
             avatarUrl: https://github.githubassets.com/images/modules/logos_page/Octocat.png
             description: Build was successfully deployed to ${{ secrets.RENDER_URL }}. by ${{ github.actor }}
             # details: 'Custom details: Somebody set up us the bomb.'
-            footer: This is a footer.
-            text: This is where text goes.
+            # footer: This is a footer.
+            # text: This is where text goes.
             webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
       - name: Test Custom
         uses: rjstone/discord-webhook-notify@v1
