@@ -29,6 +29,23 @@ jobs:
         run: npm run build
       - name: Run tests
         run: npm test
+      - name: Check for skip in commit messages
+        id: check-skip
+        run: |
+          COMMIT_MESSAGES=$(echo '${{ toJson(github.event.commits.*.message) }}' | jq -r 'join(" ")')
+          if [[ "$COMMIT_MESSAGES" == *"#skip"* ]]; then
+            echo "SKIP_INCLUDED=true" >> $GITHUB_ENV
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "SKIP_INCLUDED=false" >> $GITHUB_ENV
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Deploy
+        if: ${{ github.event_name == 'push' && env.SKIP_INCLUDED == 'false' }}
+        env:
+          deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          curl "$deploy_url"
       - name: Job Passed
         if: ${{ success() }}
         uses: rjstone/discord-webhook-notify@v1
@@ -47,23 +64,7 @@ jobs:
             description: commit ${{ github.event.head_commit.url }} by ${{ github.actor }} broke the build :(
             text: Build failed!
             webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
-      - name: Check for skip in commit messages
-        id: check-skip
-        run: |
-          COMMIT_MESSAGES=$(echo '${{ toJson(github.event.commits.*.message) }}' | jq -r 'join(" ")')
-          if [[ "$COMMIT_MESSAGES" == *"#skip"* ]]; then
-            echo "SKIP_INCLUDED=true" >> $GITHUB_ENV
-            echo "skip=true" >> $GITHUB_OUTPUT
-          else
-            echo "SKIP_INCLUDED=false" >> $GITHUB_ENV
-            echo "skip=false" >> $GITHUB_OUTPUT
-          fi
-      - name: Deploy
-        if: ${{ github.event_name == 'push' && env.SKIP_INCLUDED == 'false' }}
-        env:
-          deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-        run: |
-          curl "$deploy_url"
+            
   tag_release:
     needs: [simple_deployment_pipeline]
     runs-on: ubuntu-22.04
