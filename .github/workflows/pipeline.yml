@@ -29,7 +29,8 @@ jobs:
         run: npm run build
       - name: Run tests
         run: npm test
-      - name: Test Custom
+      - name: Job Passed
+        if: ${{ success() }}
         uses: rjstone/discord-webhook-notify@v1
         with:
             severity: info
@@ -37,7 +38,8 @@ jobs:
             description: Build was successfully deployed to ${{ secrets.RENDER_URL }}. by ${{ github.actor }}
             text: A new version of the app is now live!
             webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
-      - name: Test Custom
+      - name: Job Failed
+        if: ${{ failure() }}
         uses: rjstone/discord-webhook-notify@v1
         with:
             severity: error
