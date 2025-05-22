@@ -34,7 +34,8 @@ jobs:
         with:
             severity: info
             color: #56d364
-            details: Build was successfully deployed to ${{ secrets.RENDER_URL }}. by ${{ github.actor }}
+            content: |
+              Build was successfully deployed to ${{ secrets.RENDER_URL }}. by ${{ github.actor }}
             text: A new version of the app is now live!
             webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
       - name: Test Failure
@@ -42,6 +43,7 @@ jobs:
         if: failure()
         with:
             severity: error
+            color: #f44747;
             details: Test Failed!
             text: | 
               Build Failed Commit URL: ${{ github.event.head_commit.url }}
