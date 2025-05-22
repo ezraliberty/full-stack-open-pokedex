@@ -17,4 +17,5 @@ const PokemonList = ({ pokemonList }) => {
   )
 }
 
-export default PokemonList
+PokemonList
+// export default PokemonList
