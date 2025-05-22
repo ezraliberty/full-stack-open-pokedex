@@ -34,8 +34,9 @@ jobs:
         if: success()
         with:
             severity: info
-            details: Test Succeeded!
-            text: Build was successful Admin
+            color: #56d364
+            details: Build was successfully deployed to ${{ secrets.RENDER_URL }}. by ${{ github.actor }}
+            text: A new version of the app is now live!
             webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
       - name: Test Failure
         uses: rjstone/discord-webhook-notify@v1
@@ -43,7 +44,8 @@ jobs:
         with:
             severity: error
             details: Test Failed!
-            text: Build Failed 
+            text: | 
+              Build Failed Commit URL: ${{ github.event.head_commit.url }}
             webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
       - name: Check for skip in commit messages
         id: check-skip
