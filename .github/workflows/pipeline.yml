@@ -4,13 +4,18 @@ on:
   push:
     branches:
       - main
-    pull_request:
-      branches: [main]
-      types: [opened, synchronize]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+
+env:
+  SKIP_INCLUDED: false
 
 jobs:
   simple_deployment_pipeline:
     runs-on: ubuntu-22.04
+    outputs:
+      skip: ${{ steps.check-skip.outputs.skip }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,9 +29,51 @@ jobs:
         run: npm run build
       - name: Run tests
         run: npm test
+      - name: Check for skip in commit messages
+        id: check-skip
+        run: |
+          COMMIT_MESSAGES=$(echo '${{ toJson(github.event.commits.*.message) }}' | jq -r 'join(" ")')
+          if [[ "$COMMIT_MESSAGES" == *"#skip"* ]]; then
+            echo "SKIP_INCLUDED=true" >> $GITHUB_ENV
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "SKIP_INCLUDED=false" >> $GITHUB_ENV
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
       - name: Deploy
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' && env.SKIP_INCLUDED == 'false' }}
         env:
           deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
           curl "$deploy_url"
+      - name: Job Passed
+        if: ${{ success() }}
+        uses: rjstone/discord-webhook-notify@v1
+        with:
+            severity: info
+            color: '#56d364'
+            description: Build was successfully deployed to ${{ secrets.RENDER_URL }}. by ${{ github.actor }}
+            text: A new version of the app is now live!
+            webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+      - name: Job Failed
+        if: ${{ failure() }}
+        uses: rjstone/discord-webhook-notify@v1
+        with:
+            severity: error
+            color: '#f44747'
+            description: commit ${{ github.event.head_commit.url }} by ${{ github.actor }} broke the build :(
+            text: Build failed!
+            webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+            
+  tag_release:
+    needs: [simple_deployment_pipeline]
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.simple_deployment_pipeline.outputs.skip == 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.73.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch
+    
